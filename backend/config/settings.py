@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
+from django.core.management.utils import get_random_secret_key
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-2+^vm5fvitrs053dt620wje_j@qg0@*)5u9am@q^(ysmu=%_e$',
-)
+# В проде обязательно задайте DJANGO_SECRET_KEY через переменную окружения —
+# иначе при каждом перезапуске будет генерироваться новый ключ (сессии и
+# подписанные куки перестанут быть валидными).
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
@@ -32,6 +35,21 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h
 ]
+
+# На Vercel запрос всегда приходит на свой поддомен *.vercel.app (плюс кастомный
+# домен, если он подключён) — добавляем их автоматически, без ручной настройки.
+if os.environ.get('VERCEL'):
+    ALLOWED_HOSTS.append('.vercel.app')
+    if os.environ.get('VERCEL_URL'):
+        ALLOWED_HOSTS.append(os.environ['VERCEL_URL'])
+
+CSRF_TRUSTED_ORIGINS = [
+    o for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o
+]
+if os.environ.get('VERCEL'):
+    CSRF_TRUSTED_ORIGINS.append('https://*.vercel.app')
+    if os.environ.get('VERCEL_URL'):
+        CSRF_TRUSTED_ORIGINS.append(f"https://{os.environ['VERCEL_URL']}")
 
 
 # Application definition
@@ -85,12 +103,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# Локально (и по умолчанию) — SQLite. На деплое задайте DATABASE_URL
+# (например postgres://user:pass@host:5432/dbname) — SQLite не переживает
+# перезапуск serverless-функции на Vercel, там нужна внешняя БД.
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 
 
@@ -129,11 +150,48 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# На Vercel собранная статика публикуется отдельным static-билдом из
+# backend/staticfiles_build (см. vercel.json/build_files.sh); локально и на
+# обычном сервере — как раньше, в backend/staticfiles.
+STATIC_ROOT = (
+    BASE_DIR / 'staticfiles_build' / 'static'
+    if os.environ.get('VERCEL')
+    else BASE_DIR / 'staticfiles'
+)
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Хранилище для загружаемых файлов (аватары, фото товаров). По умолчанию —
+# локальный диск (подходит для обычного сервера). На Vercel диск не хранит
+# данные между запросами, поэтому там обязательно нужно S3-совместимое
+# хранилище — задайте AWS_STORAGE_BUCKET_NAME и остальные AWS_*-переменные
+# (подходит AWS S3, Cloudflare R2, Backblaze B2, DigitalOcean Spaces и т.п.).
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+
+if AWS_STORAGE_BUCKET_NAME:
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
+    AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL') or None
+    AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_S3_CUSTOM_DOMAIN') or None
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = False
+
+    STORAGES = {
+        'default': {'BACKEND': 'storages.backends.s3.S3Storage'},
+        'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    }
+
+
+# Безопасность за прокси (Vercel/nginx всегда терминируют HTTPS сами и
+# проксируют на бэкенд по HTTP, поэтому Django должен доверять заголовку
+# X-Forwarded-Proto, иначе не поймёт, что соединение защищено)
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # django-vite

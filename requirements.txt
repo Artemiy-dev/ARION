@@ -1,0 +1,7 @@
+# Зависимости для Python-функции Vercel (api/index.py).
+# Основной список — в backend/requirements.txt, здесь добавлены только
+# пакеты, нужные специально для продакшн-деплоя (Postgres, S3-хранилище).
+-r backend/requirements.txt
+psycopg[binary]==3.2.3
+django-storages==1.14.4
+boto3==1.35.36

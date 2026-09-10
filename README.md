@@ -76,6 +76,54 @@ DJANGO_DEBUG=False python manage.py runserver   # или gunicorn/uwsgi
 - `DJANGO_DEBUG` — `True`/`False` (по умолчанию `True`)
 - `DJANGO_SECRET_KEY` — секретный ключ для продакшна
 - `DJANGO_ALLOWED_HOSTS` — список хостов через запятую
+- `DJANGO_CSRF_TRUSTED_ORIGINS` — список доверенных origin'ов через запятую,
+  со схемой (`https://example.com`) — нужно для продакшна за HTTPS
+- `DATABASE_URL` — строка подключения к БД (например
+  `postgres://user:pass@host:5432/dbname`); если не задана — используется
+  локальный `db.sqlite3`
+- `AWS_STORAGE_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+  `AWS_S3_REGION_NAME`, `AWS_S3_ENDPOINT_URL` — S3-совместимое хранилище для
+  загружаемых файлов (аватары, фото товаров); без него файлы хранятся на
+  локальном диске
+
+## Деплой на Vercel
+
+Проект целиком (Django + собранный фронтенд) деплоится на Vercel как одна
+Python-функция (`api/index.py`) + статическая сборка. Сборкой управляют
+`vercel.json` и `build_files.sh` в корне репозитория — они сами прогоняют
+`npm run build` и `collectstatic`, вручную ничего собирать не нужно.
+
+**Важно — SQLite и медиафайлы не подходят для Vercel** (serverless-функции не
+хранят диск между запросами): обязательно нужны внешняя БД (`DATABASE_URL`,
+например [Neon](https://neon.tech) или [Supabase](https://supabase.com) —
+у обоих есть бесплатный Postgres) и S3-совместимое хранилище для аватаров и
+фото товаров (`AWS_STORAGE_BUCKET_NAME` и т.д. — подходит Cloudflare R2,
+AWS S3, Backblaze B2). Без них сайт откроется, но загрузка файлов и все
+записи в БД будут пропадать между запросами.
+
+```bash
+npm install -g vercel      # если ещё не установлен Vercel CLI
+vercel login
+vercel link                # привязать текущую папку к проекту в Vercel
+
+# переменные окружения (минимум для рабочего деплоя)
+vercel env add DJANGO_SECRET_KEY production
+vercel env add DJANGO_DEBUG production          # значение: False
+vercel env add DATABASE_URL production          # строка подключения к Postgres
+vercel env add AWS_STORAGE_BUCKET_NAME production
+vercel env add AWS_ACCESS_KEY_ID production
+vercel env add AWS_SECRET_ACCESS_KEY production
+vercel env add AWS_S3_REGION_NAME production
+vercel env add AWS_S3_ENDPOINT_URL production   # только если хранилище не AWS S3
+
+vercel --prod               # деплой
+vercel env pull .env.vercel # скачать реальные значения env, если нужно применить миграции локально
+
+# применить миграции и создать пользователей на новой (production) БД:
+DATABASE_URL=<значение из .env.vercel> python backend/manage.py migrate
+DATABASE_URL=<значение из .env.vercel> python backend/manage.py createsuperuser
+DATABASE_URL=<значение из .env.vercel> python backend/manage.py create_manager --username manager --password <свой-пароль>
+```
 
 ## API
 
@@ -137,28 +185,25 @@ Django-админка полностью на русском (`LANGUAGE_CODE = '
 товаров и заявок + просмотр статистики), без доступа к пользователям,
 группам и прочим системным разделам.
 
-Открыть **http://localhost:8000/admin/** и войти:
+Открыть **http://localhost:8000/admin/**. Учётные записи не поставляются с
+проектом — создайте их локально:
 
-| Роль | Логин | Пароль | Доступ |
-|---|---|---|---|
-| Менеджер каталога | `manager` | `manager12345` | разделы **Каталог** и **Заявки** (полный доступ, включая удаление), просмотр **Статистики** |
-| Суперпользователь | `admin` | `admin12345` | полный доступ, включая пользователей и группы |
+```bash
+# Суперпользователь (полный доступ, включая пользователей и группы)
+python manage.py createsuperuser
+
+# Менеджер каталога (доступ только к разделам "Каталог" и "Заявки" + просмотр статистики)
+python manage.py create_manager --username manager --password <свой-пароль>
+# без --password будет сгенерирован случайный пароль и выведен один раз в консоль
+```
 
 Тот же логин/пароль менеджера работает и на самом сайте (кнопка «Войти») —
 после входа в личном кабинете (клик по аватарке) появляется дополнительная
 ссылка «Статистика посещений».
 
-**Обязательно смените оба пароля** (`python manage.py changepassword <username>`)
-перед реальным использованием или деплоем.
-
-Если нужно создать роль менеджера заново (например, на чистой базе):
-
-```bash
-python manage.py create_manager --username manager --password <пароль>
-```
-
-(команда идемпотентна — можно перезапускать, если менять права менеджера в
-будущем: она пересоздаёт группу и права с нуля)
+`create_manager` идемпотентна — можно перезапускать, если меняете права
+менеджера в будущем: она пересоздаёт группу и права с нуля (пароль при этом
+обновится только если передан явно через `--password`).
 
 Демо-данные (9 товаров) можно накатить/восстановить командой:
 

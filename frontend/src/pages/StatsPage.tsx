@@ -12,17 +12,36 @@ interface TopPage {
   count: number
 }
 
+interface OrderStatusCount {
+  status: string
+  label: string
+  count: number
+}
+
+interface OrderStats {
+  total: number
+  last_14_days_total: number
+  by_status: OrderStatusCount[]
+  revenue_done: number
+  revenue_pending: number
+}
+
 interface Stats {
   total: number
   last_14_days_total: number
   unique_visitors: number
   by_day: DayVisit[]
   top_pages: TopPage[]
+  orders: OrderStats
 }
 
 function formatDay(iso: string) {
   const date = new Date(iso)
   return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+}
+
+function formatMoney(value: number) {
+  return `${Math.round(value).toLocaleString('ru-RU')} ₸`
 }
 
 export function StatsPage() {
@@ -95,6 +114,55 @@ export function StatsPage() {
               ))}
             </tbody>
           </table>
+        )}
+      </section>
+
+      <h2 className="stats-section-title">Заявки и продажи</h2>
+
+      <div className="stats-tiles">
+        <div className="stat-tile">
+          <span className="stat-tile__label">Всего заявок</span>
+          <span className="stat-tile__value">{stats.orders.total.toLocaleString('ru-RU')}</span>
+        </div>
+        <div className="stat-tile">
+          <span className="stat-tile__label">Заявок за 14 дней</span>
+          <span className="stat-tile__value">
+            {stats.orders.last_14_days_total.toLocaleString('ru-RU')}
+          </span>
+        </div>
+        <div className="stat-tile">
+          <span className="stat-tile__label">Сумма выполненных заявок</span>
+          <span className="stat-tile__value">{formatMoney(stats.orders.revenue_done)}</span>
+        </div>
+      </div>
+
+      <section className="stats-table">
+        <h2>Заявки по статусам</h2>
+        {stats.orders.by_status.length === 0 ? (
+          <p className="state-message">Заявок пока нет</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Статус</th>
+                <th>Заявок</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.orders.by_status.map((s) => (
+                <tr key={s.status}>
+                  <td>{s.label}</td>
+                  <td>{s.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {stats.orders.revenue_pending > 0 && (
+          <p className="stats-note">
+            В необработанных заявках (новые + в обработке) на сумму{' '}
+            {formatMoney(stats.orders.revenue_pending)}
+          </p>
         )}
       </section>
     </div>

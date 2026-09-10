@@ -1,3 +1,4 @@
+/* Цветовые токены светлой темы (значения по умолчанию для :root) */
 :root {
   --text: #111111;
   --text-muted: #6b6b6b;
@@ -15,6 +16,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Тёмная тема по системным настройкам ОС (когда пользователь явно не выбрал светлую) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --text: #f2f2f2;
@@ -28,6 +30,7 @@
   }
 }
 
+/* Тёмная тема, выбранная вручную в личном кабинете (переключатель темы) */
 :root[data-theme='dark'] {
   --text: #f2f2f2;
   --text-muted: #9a9a9a;
@@ -39,6 +42,7 @@
   --accent-hover: #cfcfcf;
 }
 
+/* Базовый сброс стандартных стилей браузера */
 * {
   box-sizing: border-box;
 }
@@ -63,6 +67,7 @@ h3 {
   letter-spacing: -0.02em;
 }
 
+/* Общий каркас страницы: шапка + контент + подвал прижаты к краям экрана */
 .layout {
   display: flex;
   flex-direction: column;
@@ -77,13 +82,14 @@ h3 {
   padding: 32px 20px;
 }
 
+/* Заглушка на весь экран для состояний загрузки/ошибки/пустых списков */
 .state-message {
   text-align: center;
   color: var(--text-muted);
   padding: 60px 0;
 }
 
-/* Header */
+/* Header — шапка сайта: лого, навигация, действия (избранное/корзина/аватар) */
 .header {
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -247,7 +253,7 @@ h3 {
   }
 }
 
-/* Footer */
+/* Footer — подвал сайта */
 .footer {
   border-top: 1px solid var(--border);
   margin-top: 60px;
@@ -279,7 +285,7 @@ h3 {
   color: var(--text);
 }
 
-/* Catalog */
+/* Catalog — страница каталога: хлебные крошки, сетка карточек товаров, тулбар сортировки */
 .catalog__breadcrumbs {
   color: var(--text-muted);
   font-size: 13px;
@@ -326,7 +332,7 @@ h3 {
   }
 }
 
-/* Filters */
+/* Filters — боковая панель фильтров каталога (категория, цена, наличие и т.п.) */
 .filters {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -385,7 +391,7 @@ h3 {
   color: var(--accent-text);
 }
 
-/* Sort */
+/* Sort — выпадающий список сортировки товаров */
 .sort-dropdown {
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -395,7 +401,7 @@ h3 {
   font-size: 13px;
 }
 
-/* Product card */
+/* Product card — карточка товара в сетке каталога */
 .product-card {
   position: relative;
   border: 1px solid var(--border);
@@ -492,7 +498,7 @@ h3 {
   background: var(--accent-hover);
 }
 
-/* Pagination */
+/* Pagination — постраничная навигация под сеткой каталога */
 .pagination {
   display: flex;
   gap: 6px;
@@ -521,7 +527,7 @@ h3 {
   border-color: var(--accent);
 }
 
-/* Product page */
+/* Product page — карточка товара на отдельной странице (фото + характеристики + цена) */
 .product-page__back {
   display: inline-block;
   color: var(--text-muted);
@@ -616,6 +622,7 @@ h3 {
   font-weight: 700;
 }
 
+/* Акцентный вариант кнопки шапки (.header__icon-btn), напр. кнопка «Войти» */
 .header__icon-btn--primary {
   background: var(--accent);
   color: var(--accent-text);
@@ -626,7 +633,7 @@ h3 {
   background: var(--accent-hover);
 }
 
-/* Favorite button on card */
+/* Favorite button on card — кнопка «в избранное» (локальный localStorage, без аккаунта) */
 .product-card__favorite {
   position: absolute;
   top: 12px;
@@ -669,7 +676,7 @@ h3 {
   font-weight: 600;
 }
 
-/* Auth pages */
+/* Auth pages — формы входа/регистрации покупателя (/login, /register) */
 .auth-page {
   display: flex;
   justify-content: center;
@@ -774,7 +781,7 @@ h3 {
   text-decoration: underline;
 }
 
-/* Cart page */
+/* Cart page — корзина покупателя: список товаров, количество, итог */
 .cart-page h1 {
   margin: 0 0 24px;
 }
@@ -888,12 +895,13 @@ h3 {
   margin: 6px 0 0;
 }
 
+/* Ссылка внутри .state-message (напр. "Корзина пуста, перейти в каталог") */
 .state-message a {
   text-decoration: underline;
   color: var(--text);
 }
 
-/* About page */
+/* About page — страница "О нас" */
 .about-hero {
   max-width: 640px;
   margin: 0 0 48px;
@@ -975,7 +983,7 @@ h3 {
   margin: 0;
 }
 
-/* Contacts page */
+/* Contacts page — страница "Контакты" */
 .contacts-page h1 {
   margin: 0 0 24px;
 }
@@ -1016,7 +1024,7 @@ h3 {
   font-size: 13px !important;
 }
 
-/* Modal */
+/* Modal — общий каркас всплывающих окон (личный кабинет, оформление заявки) */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1085,7 +1093,7 @@ h3 {
   }
 }
 
-/* Account modal */
+/* Account modal — личный кабинет: аватар, переключатель темы, ссылка на статистику, выход */
 .account-modal__avatar-row {
   display: flex;
   align-items: center;
@@ -1198,7 +1206,7 @@ h3 {
   background: var(--bg-muted);
 }
 
-/* Checkout modal */
+/* Checkout modal — окно оформления заявки из корзины (список товаров + форма) */
 .checkout-form__items {
   display: flex;
   flex-direction: column;
@@ -1232,6 +1240,7 @@ h3 {
   border-bottom: 1px solid var(--border);
 }
 
+/* Textarea для поля "комментарий" в форме оформления заявки (переиспользует .auth-field) */
 .auth-field textarea {
   width: 100%;
   padding: 10px 12px;
@@ -1281,11 +1290,12 @@ h3 {
   }
 }
 
-/* Stats page */
+/* Stats page — страница /stats (только для менеджеров): посещения + заявки/продажи */
 .stats-page h1 {
   margin: 0 0 24px;
 }
 
+/* Сетка плиток с ключевыми цифрами (используется и для посещений, и для заявок) */
 .stats-tiles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1318,6 +1328,7 @@ h3 {
   font-weight: 600;
 }
 
+/* Столбчатый график посещений по дням */
 .stats-chart {
   margin-bottom: 40px;
 }
@@ -1377,6 +1388,7 @@ h3 {
   }
 }
 
+/* Таблицы статистики: топ страниц и разбивка заявок по статусам */
 .stats-table table {
   width: 100%;
   border-collapse: collapse;
@@ -1400,4 +1412,18 @@ h3 {
 .stats-table th:last-child {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* Заголовок-разделитель между блоком "Посещения" и блоком "Заявки и продажи" */
+.stats-section-title {
+  margin: 48px 0 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+/* Мелкая заметка под таблицей (напр. сумма в необработанных заявках) */
+.stats-note {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 14px;
 }

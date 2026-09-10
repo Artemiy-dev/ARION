@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
+from django.utils.crypto import get_random_string
 
 from analytics.models import PageVisit
 from catalog.models import Category, Product, ProductCharacteristic
@@ -20,7 +21,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--username", default="manager")
-        parser.add_argument("--password", default="manager12345")
+        parser.add_argument(
+            "--password",
+            default=None,
+            help="Пароль менеджера. Если не указан, будет сгенерирован случайно.",
+        )
 
     def handle(self, *args, **options):
         group, _ = Group.objects.get_or_create(name="Менеджеры каталога")
@@ -47,18 +52,31 @@ class Command(BaseCommand):
 
         User = get_user_model()
         username = options["username"]
-        password = options["password"]
 
         user, created = User.objects.get_or_create(
             username=username, defaults={"is_staff": True}
         )
         user.is_staff = True
         user.is_superuser = False
-        user.set_password(password)
+
+        generated_password = None
+        if options["password"]:
+            user.set_password(options["password"])
+        elif created:
+            generated_password = get_random_string(16)
+            user.set_password(generated_password)
+
         user.save()
         user.groups.set([group])
 
         action_word = "создан" if created else "обновлён"
-        self.stdout.write(
-            self.style.SUCCESS(f"Пользователь-менеджер {action_word}: {username} / {password}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Пользователь-менеджер {action_word}: {username}"))
+        if generated_password:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Пароль сгенерирован автоматически: {generated_password} "
+                    "— сохраните его, он больше нигде не будет показан."
+                )
+            )
+        elif not options["password"]:
+            self.stdout.write("Пароль не менялся (передайте --password, чтобы задать новый).")
