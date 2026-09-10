@@ -1,4 +1,5 @@
 import { RouterProvider } from 'react-router-dom'
+import { Preloader } from '../components/layout/Preloader'
 import { AuthProvider } from './AuthProvider'
 import { CartProvider } from './CartProvider'
 import { FavoritesProvider } from './FavoritesProvider'
@@ -11,6 +12,7 @@ export function App() {
       <AuthProvider>
         <CartProvider>
           <FavoritesProvider>
+            <Preloader />
             <RouterProvider router={router} />
           </FavoritesProvider>
         </CartProvider>
