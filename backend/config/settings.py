@@ -177,7 +177,11 @@ if AWS_STORAGE_BUCKET_NAME:
     AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL') or None
     AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_S3_CUSTOM_DOMAIN') or None
     AWS_DEFAULT_ACL = None
-    AWS_QUERYSTRING_AUTH = False
+    # Бакет приватный — отдаём временные подписанные ссылки на файлы
+    # (генерируются заново на каждый запрос, поэтому публичный доступ
+    # включать не нужно).
+    AWS_QUERYSTRING_AUTH = True
+    AWS_QUERYSTRING_EXPIRE = 3600
 
     STORAGES = {
         'default': {'BACKEND': 'storages.backends.s3.S3Storage'},
