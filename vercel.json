@@ -1,12 +1,4 @@
 {
   "buildCommand": "bash build_files.sh",
-  "outputDirectory": "backend/staticfiles_build",
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "backend/static/.vite/**"
-    }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py" }
-  ]
+  "outputDirectory": "backend/staticfiles_build"
 }
