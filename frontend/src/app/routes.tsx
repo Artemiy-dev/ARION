@@ -8,9 +8,11 @@ import { ContactsPage } from '../pages/ContactsPage'
 import { FavoritesPage } from '../pages/FavoritesPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { PrivacyPage } from '../pages/PrivacyPage'
 import { ProductPage } from '../pages/ProductPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { StatsPage } from '../pages/StatsPage'
+import { TermsPage } from '../pages/TermsPage'
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +30,8 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'stats', element: <StatsPage /> },
+      { path: 'privacy', element: <PrivacyPage /> },
+      { path: 'terms', element: <TermsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

@@ -31,18 +31,6 @@ export function Header() {
         <SearchBox onNavigate={closeMenu} />
 
         <div className={menuOpen ? 'header__panel header__panel--open' : 'header__panel'}>
-          <nav className="header__nav">
-            <Link to="/catalog" onClick={closeMenu}>
-              Каталог
-            </Link>
-            <Link to="/about" onClick={closeMenu}>
-              О нас
-            </Link>
-            <Link to="/contacts" onClick={closeMenu}>
-              Контакты
-            </Link>
-          </nav>
-
           <div className="header__actions">
             <Link to="/compare" className="header__icon-btn" onClick={closeMenu}>
               Сравнение{compareIds.length > 0 ? ` (${compareIds.length})` : ''}
