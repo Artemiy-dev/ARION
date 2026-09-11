@@ -3,6 +3,7 @@ import { Layout } from '../components/layout/Layout'
 import { AboutPage } from '../pages/AboutPage'
 import { CartPage } from '../pages/CartPage'
 import { CatalogPage } from '../pages/CatalogPage'
+import { ComparePage } from '../pages/ComparePage'
 import { ContactsPage } from '../pages/ContactsPage'
 import { FavoritesPage } from '../pages/FavoritesPage'
 import { LoginPage } from '../pages/LoginPage'
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { path: 'about', element: <AboutPage /> },
       { path: 'contacts', element: <ContactsPage /> },
       { path: 'favorites', element: <FavoritesPage /> },
+      { path: 'compare', element: <ComparePage /> },
       { path: 'cart', element: <CartPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },

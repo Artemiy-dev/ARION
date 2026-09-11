@@ -24,7 +24,15 @@ export function CheckoutModal({ open, onClose, cart, onSuccess }: CheckoutModalP
     setError(null)
     setSubmitting(true)
     try {
-      const order = await createOrder({ full_name: fullName, phone, comment })
+      const order = await createOrder({
+        full_name: fullName,
+        phone,
+        comment,
+        items: cart.items.map((item) => ({
+          product_slug: item.product.slug,
+          quantity: item.quantity,
+        })),
+      })
       setOrderId(order.id)
     } catch {
       setError('Не удалось отправить заявку. Попробуйте ещё раз.')

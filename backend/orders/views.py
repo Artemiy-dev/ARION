@@ -1,35 +1,33 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from cart.models import Cart
+from catalog.models import Product
 
 from .models import Order, OrderItem
 from .serializers import OrderCreateSerializer, OrderSerializer
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def create_order(request):
     payload = OrderCreateSerializer(data=request.data)
     payload.is_valid(raise_exception=True)
+    items_data = payload.validated_data.pop("items")
 
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_items = list(cart.items.select_related("product").all())
-    if not cart_items:
-        return Response({"detail": "Корзина пуста"}, status=status.HTTP_400_BAD_REQUEST)
-
-    order = Order.objects.create(user=request.user, **payload.validated_data)
-    OrderItem.objects.bulk_create(
-        [
-            OrderItem(order=order, product=item.product, quantity=item.quantity, price=item.product.price)
-            for item in cart_items
-        ]
+    order = Order.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        **payload.validated_data,
     )
-    cart_items_ids = [item.id for item in cart_items]
-    cart.items.filter(id__in=cart_items_ids).delete()
+    order_items = []
+    for item in items_data:
+        product = get_object_or_404(Product, slug=item["product_slug"])
+        order_items.append(
+            OrderItem(order=order, product=product, quantity=item["quantity"], price=product.price)
+        )
+    OrderItem.objects.bulk_create(order_items)
 
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 

@@ -23,7 +23,18 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "status", "created_at"]
 
 
+class OrderItemInputSerializer(serializers.Serializer):
+    product_slug = serializers.SlugField()
+    quantity = serializers.IntegerField(min_value=1)
+
+
 class OrderCreateSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=150)
     phone = serializers.CharField(max_length=32)
     comment = serializers.CharField(required=False, allow_blank=True, default="")
+    items = OrderItemInputSerializer(many=True)
+
+    def validate_items(self, value):
+        if not value:
+            raise serializers.ValidationError("Корзина пуста")
+        return value

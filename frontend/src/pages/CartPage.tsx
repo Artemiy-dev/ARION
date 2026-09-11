@@ -1,27 +1,30 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckoutModal } from '../components/cart/CheckoutModal'
-import { useAuth } from '../app/AuthProvider'
 import { useCart } from '../app/CartProvider'
+import { useFetch } from '../hooks/useFetch'
 import { getIncludedVat, KZ_VAT_RATE } from '../utils/vat'
+import type { Cart } from '../types/cart'
+import type { Product } from '../types/product'
 
 export function CartPage() {
-  const { user } = useAuth()
-  const { cart, loading, updateItem, removeItem, refresh } = useCart()
+  const { lines, updateQuantity, removeFromCart, clearCart } = useCart()
+  const { data: products, loading } = useFetch<Product[]>('/products/')
   const [checkoutOpen, setCheckoutOpen] = useState(false)
 
-  if (!user) {
-    return (
-      <div className="state-message">
-        <p>Войдите, чтобы посмотреть корзину</p>
-        <p>
-          <Link to="/login">Войти</Link> или <Link to="/register">зарегистрироваться</Link>
-        </p>
-      </div>
-    )
-  }
+  const cart = useMemo<Cart>(() => {
+    if (!products) return { items: [], total: 0 }
+    const items = lines
+      .map((line) => {
+        const product = products.find((p) => p.id === line.productId)
+        if (!product) return null
+        return { id: product.id, product, quantity: line.quantity, subtotal: product.price * line.quantity }
+      })
+      .filter((item): item is Cart['items'][number] => item !== null)
+    return { items, total: items.reduce((sum, item) => sum + item.subtotal, 0) }
+  }, [lines, products])
 
-  if (loading || !cart) return <p className="state-message">Загрузка...</p>
+  if (loading) return <p className="state-message">Загрузка...</p>
 
   if (cart.items.length === 0) {
     return (
@@ -57,11 +60,11 @@ export function CartPage() {
             </div>
 
             <div className="cart-item__quantity">
-              <button type="button" onClick={() => updateItem(item.id, item.quantity - 1)}>
+              <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>
                 −
               </button>
               <span>{item.quantity}</span>
-              <button type="button" onClick={() => updateItem(item.id, item.quantity + 1)}>
+              <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>
                 +
               </button>
             </div>
@@ -73,7 +76,7 @@ export function CartPage() {
             <button
               type="button"
               className="cart-item__remove"
-              onClick={() => removeItem(item.id)}
+              onClick={() => removeFromCart(item.product.id)}
             >
               Удалить
             </button>
@@ -101,7 +104,7 @@ export function CartPage() {
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
         cart={cart}
-        onSuccess={refresh}
+        onSuccess={clearCart}
       />
     </div>
   )

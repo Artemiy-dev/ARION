@@ -1,6 +1,6 @@
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useAuth } from '../app/AuthProvider'
+import { Link, useParams } from 'react-router-dom'
 import { useCart } from '../app/CartProvider'
+import { useCompare } from '../app/CompareProvider'
 import { useFavorites } from '../app/FavoritesProvider'
 import { useFetch } from '../hooks/useFetch'
 import type { Product } from '../types/product'
@@ -8,24 +8,19 @@ import type { Product } from '../types/product'
 export function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: product, error, loading } = useFetch<Product>(`/products/${slug}/`)
-  const { user } = useAuth()
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite } = useFavorites()
-  const navigate = useNavigate()
+  const { isComparing, toggleCompare } = useCompare()
 
   if (loading) return <p className="state-message">Загрузка...</p>
   if (error || !product) return <p className="state-message">Товар не найден</p>
 
   function handleAddToCart() {
-    if (!user) {
-      sessionStorage.setItem('pendingCartProduct', product!.slug)
-      navigate('/register')
-      return
-    }
-    addToCart(product!.slug)
+    addToCart(product!.id)
   }
 
   const favorite = isFavorite(product.id)
+  const comparing = isComparing(product.id)
 
   return (
     <div className="product-page">
@@ -63,7 +58,7 @@ export function ProductPage() {
 
           <div className="product-page__footer">
             <span className="product-page__price">
-              {product.price.toLocaleString('ru-RU')} ₸
+              {product.price.toLocaleString('ru-RU')} ₸<span className="product-card__vat"> с НДС</span>
             </span>
             <button type="button" className="product-card__button" onClick={handleAddToCart}>
               В корзину
@@ -78,6 +73,17 @@ export function ProductPage() {
               onClick={() => toggleFavorite(product.id)}
             >
               ♥ {favorite ? 'В избранном' : 'В избранное'}
+            </button>
+            <button
+              type="button"
+              className={
+                comparing
+                  ? 'product-page__favorite product-page__favorite--active'
+                  : 'product-page__favorite'
+              }
+              onClick={() => toggleCompare(product.id)}
+            >
+              {comparing ? '✓ В сравнении' : 'Сравнить'}
             </button>
           </div>
         </div>

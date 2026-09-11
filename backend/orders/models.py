@@ -12,7 +12,12 @@ class Order(models.Model):
         CANCELED = "canceled", "Отменена"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name="Пользователь", related_name="orders", on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL,
+        verbose_name="Пользователь",
+        related_name="orders",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
     full_name = models.CharField("Имя", max_length=150)
     phone = models.CharField("Телефон", max_length=32)

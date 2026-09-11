@@ -5,6 +5,7 @@ export interface CreateOrderPayload {
   full_name: string
   phone: string
   comment?: string
+  items: { product_slug: string; quantity: number }[]
 }
 
 export function createOrder(payload: CreateOrderPayload) {

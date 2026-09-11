@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Pagination } from '../components/catalog/Pagination'
 import { ProductCard } from '../components/catalog/ProductCard'
 import { FilterSidebar, type Filters } from '../components/catalog/FilterSidebar'
@@ -11,6 +12,8 @@ const PAGE_SIZE = 6
 export function CatalogPage() {
   const { data: products, error, loading } = useFetch<Product[]>('/products/')
   const { data: categories } = useFetch<Category[]>('/categories/')
+  const [searchParams] = useSearchParams()
+  const query = (searchParams.get('q') ?? '').trim().toLowerCase()
 
   const priceLimit = useMemo(() => {
     if (!products || products.length === 0) return 100000
@@ -25,6 +28,10 @@ export function CatalogPage() {
   const [sort, setSort] = useState<SortOption>('name')
   const [page, setPage] = useState(1)
 
+  useEffect(() => {
+    setPage(1)
+  }, [query])
+
   const filtered = useMemo(() => {
     if (!products) return []
 
@@ -32,6 +39,10 @@ export function CatalogPage() {
       if (filters.categorySlug && p.category.slug !== filters.categorySlug) return false
       if (filters.maxPrice !== null && p.price > filters.maxPrice) return false
       if (filters.inStockOnly && !p.in_stock) return false
+      if (query) {
+        const haystack = `${p.name} ${p.brand} ${p.description}`.toLowerCase()
+        if (!haystack.includes(query)) return false
+      }
       return true
     })
 
@@ -42,7 +53,7 @@ export function CatalogPage() {
     })
 
     return result
-  }, [products, filters, sort])
+  }, [products, filters, sort, query])
 
   const pageCount = Math.ceil(filtered.length / PAGE_SIZE)
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -63,6 +74,12 @@ export function CatalogPage() {
   return (
     <div className="catalog">
       <p className="catalog__breadcrumbs">Главная / Принтеры</p>
+
+      {query && (
+        <p className="catalog__search-info">
+          Результаты по запросу «{searchParams.get('q')}»
+        </p>
+      )}
 
       <div className="catalog__layout">
         <FilterSidebar

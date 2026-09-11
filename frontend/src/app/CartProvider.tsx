@@ -1,58 +1,49 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { api } from '../api/client'
-import type { Cart } from '../types/cart'
-import { useAuth } from './AuthProvider'
+import { createContext, useContext, type ReactNode } from 'react'
+import { useLocalStorage } from '../hooks/useLocalStorage'
+import type { CartLine } from '../types/cart'
 
 interface CartContextValue {
-  cart: Cart | null
-  loading: boolean
-  addToCart: (slug: string, quantity?: number) => Promise<void>
-  updateItem: (itemId: number, quantity: number) => Promise<void>
-  removeItem: (itemId: number) => Promise<void>
-  refresh: () => Promise<void>
+  lines: CartLine[]
+  addToCart: (productId: number, quantity?: number) => void
+  updateQuantity: (productId: number, quantity: number) => void
+  removeFromCart: (productId: number) => void
+  clearCart: () => void
 }
 
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
-  const [cart, setCart] = useState<Cart | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [lines, setLines] = useLocalStorage<CartLine[]>('arion:cart', [])
 
-  useEffect(() => {
-    if (!user) {
-      setCart(null)
-      return
-    }
-    setLoading(true)
-    api
-      .get<Cart>('/cart/')
-      .then(setCart)
-      .finally(() => setLoading(false))
-  }, [user])
-
-  async function addToCart(slug: string, quantity = 1) {
-    const data = await api.post<Cart>('/cart/add/', { product_slug: slug, quantity })
-    setCart(data)
+  function addToCart(productId: number, quantity = 1) {
+    setLines((prev) => {
+      const existing = prev.find((l) => l.productId === productId)
+      if (existing) {
+        return prev.map((l) =>
+          l.productId === productId ? { ...l, quantity: l.quantity + quantity } : l,
+        )
+      }
+      return [...prev, { productId, quantity }]
+    })
   }
 
-  async function updateItem(itemId: number, quantity: number) {
-    const data = await api.patch<Cart>(`/cart/items/${itemId}/`, { quantity })
-    setCart(data)
+  function updateQuantity(productId: number, quantity: number) {
+    setLines((prev) => {
+      if (quantity <= 0) return prev.filter((l) => l.productId !== productId)
+      return prev.map((l) => (l.productId === productId ? { ...l, quantity } : l))
+    })
   }
 
-  async function removeItem(itemId: number) {
-    const data = await api.delete<Cart>(`/cart/items/${itemId}/`)
-    setCart(data)
+  function removeFromCart(productId: number) {
+    setLines((prev) => prev.filter((l) => l.productId !== productId))
   }
 
-  async function refresh() {
-    const data = await api.get<Cart>('/cart/')
-    setCart(data)
+  function clearCart() {
+    setLines([])
   }
 
   return (
-    <CartContext.Provider value={{ cart, loading, addToCart, updateItem, removeItem, refresh }}>
+    <CartContext.Provider value={{ lines, addToCart, updateQuantity, removeFromCart, clearCart }}>
       {children}
     </CartContext.Provider>
   )

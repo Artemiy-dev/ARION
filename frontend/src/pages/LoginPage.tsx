@@ -2,11 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../app/AuthProvider'
-import { useCart } from '../app/CartProvider'
 
 export function LoginPage() {
   const { login } = useAuth()
-  const { addToCart } = useCart()
   const navigate = useNavigate()
 
   const [username, setUsername] = useState('')
@@ -20,15 +18,7 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       await login(username, password)
-
-      const pendingSlug = sessionStorage.getItem('pendingCartProduct')
-      if (pendingSlug) {
-        sessionStorage.removeItem('pendingCartProduct')
-        await addToCart(pendingSlug)
-        navigate('/cart')
-      } else {
-        navigate('/')
-      }
+      navigate('/')
     } catch (err) {
       if (err instanceof ApiError) {
         setError((err.data as { detail?: string })?.detail ?? 'Не удалось войти')

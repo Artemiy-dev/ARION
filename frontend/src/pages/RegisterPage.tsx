@@ -2,13 +2,11 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../app/AuthProvider'
-import { useCart } from '../app/CartProvider'
 
 type FieldErrors = Partial<Record<'username' | 'email' | 'first_name' | 'password', string>>
 
 export function RegisterPage() {
   const { register } = useAuth()
-  const { addToCart } = useCart()
   const navigate = useNavigate()
 
   const [form, setForm] = useState({ username: '', email: '', first_name: '', password: '' })
@@ -16,8 +14,6 @@ export function RegisterPage() {
   const [errors, setErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  const pendingSlug = sessionStorage.getItem('pendingCartProduct')
 
   function update(field: keyof typeof form, value: string) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -36,14 +32,7 @@ export function RegisterPage() {
     setSubmitting(true)
     try {
       await register(form)
-
-      if (pendingSlug) {
-        sessionStorage.removeItem('pendingCartProduct')
-        await addToCart(pendingSlug)
-        navigate('/cart')
-      } else {
-        navigate('/')
-      }
+      navigate('/')
     } catch (err) {
       if (err instanceof ApiError && err.data && typeof err.data === 'object') {
         const data = err.data as Record<string, string[]>
@@ -67,11 +56,7 @@ export function RegisterPage() {
     <div className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit}>
         <h1>Регистрация</h1>
-        <p className="auth-card__subtitle">
-          {pendingSlug
-            ? 'Создайте аккаунт, чтобы добавить товар в корзину'
-            : 'Создайте аккаунт Arion за минуту'}
-        </p>
+        <p className="auth-card__subtitle">Создайте аккаунт Arion за минуту</p>
 
         {formError && <p className="auth-card__error">{formError}</p>}
 

@@ -2,17 +2,20 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../app/AuthProvider'
 import { useCart } from '../../app/CartProvider'
+import { useCompare } from '../../app/CompareProvider'
 import { useFavorites } from '../../app/FavoritesProvider'
 import { AccountModal } from './AccountModal'
+import { SearchBox } from './SearchBox'
 
 export function Header() {
   const { user } = useAuth()
-  const { cart } = useCart()
+  const { lines } = useCart()
   const { favoriteIds } = useFavorites()
+  const { compareIds } = useCompare()
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
 
-  const cartCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
+  const cartCount = lines.reduce((sum, line) => sum + line.quantity, 0)
 
   function closeMenu() {
     setMenuOpen(false)
@@ -24,6 +27,8 @@ export function Header() {
         <Link to="/" className="header__logo" onClick={closeMenu}>
           Arion
         </Link>
+
+        <SearchBox onNavigate={closeMenu} />
 
         <div className={menuOpen ? 'header__panel header__panel--open' : 'header__panel'}>
           <nav className="header__nav">
@@ -39,6 +44,9 @@ export function Header() {
           </nav>
 
           <div className="header__actions">
+            <Link to="/compare" className="header__icon-btn" onClick={closeMenu}>
+              Сравнение{compareIds.length > 0 ? ` (${compareIds.length})` : ''}
+            </Link>
             <Link to="/favorites" className="header__icon-btn" onClick={closeMenu}>
               Избранное{favoriteIds.length > 0 ? ` (${favoriteIds.length})` : ''}
             </Link>
