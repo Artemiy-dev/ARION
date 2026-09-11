@@ -109,10 +109,15 @@ h3 {
 }
 
 .header__logo {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header__logo-img {
+  display: block;
+  height: 32px;
+  width: auto;
 }
 
 /* Поиск по каталогу — центрируется между лого и навигацией */
