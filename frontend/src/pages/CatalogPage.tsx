@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Pagination } from '../components/catalog/Pagination'
 import { ProductCard } from '../components/catalog/ProductCard'
+import { PromoCarousel } from '../components/catalog/PromoCarousel'
 import { FilterSidebar, type Filters } from '../components/catalog/FilterSidebar'
 import { SortDropdown, type SortOption } from '../components/catalog/SortDropdown'
 import { useFetch } from '../hooks/useFetch'
@@ -73,6 +74,8 @@ export function CatalogPage() {
 
   return (
     <div className="catalog">
+      {!query && <PromoCarousel />}
+
       <p className="catalog__breadcrumbs">Главная / Принтеры</p>
 
       {query && (

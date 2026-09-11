@@ -5,10 +5,11 @@ from django.core.management.base import BaseCommand
 from django.utils.crypto import get_random_string
 
 from analytics.models import PageVisit
+from banners.models import Banner
 from catalog.models import Category, Product, ProductCharacteristic
 from orders.models import Order, OrderItem
 
-FULL_ACCESS_MODELS = [Category, Product, ProductCharacteristic, Order, OrderItem]
+FULL_ACCESS_MODELS = [Category, Product, ProductCharacteristic, Order, OrderItem, Banner]
 VIEW_ONLY_MODELS = [PageVisit]
 
 

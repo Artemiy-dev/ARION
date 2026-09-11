@@ -247,7 +247,7 @@ h3 {
   color: var(--text);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
   .header__search {
     order: 2;
     flex: 1 1 100%;
@@ -348,7 +348,7 @@ h3 {
   border-radius: 2px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
   .header__inner {
     gap: 12px;
   }
@@ -424,6 +424,94 @@ h3 {
 
 .footer__nav a:hover {
   color: var(--text);
+}
+
+/* Promo carousel — баннер с акциями на главной, фото грузит менеджер через админку */
+.promo-carousel {
+  margin-bottom: 32px;
+}
+
+.promo-carousel__viewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--bg-muted);
+}
+
+.promo-carousel__track {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+
+.promo-carousel__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.promo-carousel__slide a {
+  display: block;
+}
+
+.promo-carousel__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 21 / 6;
+  object-fit: cover;
+}
+
+@media (max-width: 720px) {
+  .promo-carousel__image {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+.promo-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promo-carousel__arrow:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.promo-carousel__arrow--prev {
+  left: 12px;
+}
+
+.promo-carousel__arrow--next {
+  right: 12px;
+}
+
+.promo-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.promo-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border);
+  padding: 0;
+}
+
+.promo-carousel__dot--active {
+  background: var(--text);
 }
 
 /* Catalog — страница каталога: хлебные крошки, сетка карточек товаров, тулбар сортировки */
